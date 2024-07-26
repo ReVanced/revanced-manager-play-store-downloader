@@ -1,0 +1,32 @@
+[versions]
+agp = "8.5.1"
+kotlin = "1.9.22"
+manager-plugin-api = "1.0"
+gplayapi = "3.4.0"
+arsclib = "1.3.1"
+ktor = "2.3.9"
+
+compose-activity = "1.9.1"
+ui-tooling = "1.6.8"
+compose-bom = "2024.06.00"
+material3 = "1.3.0-beta05"
+compose-webview = "0.33.6"
+
+[libraries]
+gplayapi = { group = "com.auroraoss", name = "gplayapi", version.ref = "gplayapi" }
+arsclib = { group = "io.github.reandroid", name = "ARSCLib", version.ref = "arsclib" }
+manager-plugin-api = { group = "app.revanced", name = "manager-downloader-plugin", version.ref = "manager-plugin-api" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "ui-tooling" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
+compose-webview = { group = "io.github.kevinnzou", name = "compose-webview", version.ref = "compose-webview" }
+ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+
