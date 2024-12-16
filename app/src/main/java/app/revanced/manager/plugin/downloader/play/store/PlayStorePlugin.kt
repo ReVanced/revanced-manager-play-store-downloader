@@ -1,17 +1,10 @@
 package app.revanced.manager.plugin.downloader.play.store
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
+import android.os.Parcelable
 import android.util.Log
-import app.revanced.manager.plugin.downloader.App
-import app.revanced.manager.plugin.downloader.DownloaderContext
-import app.revanced.manager.plugin.downloader.UserInteractionException
-import app.revanced.manager.plugin.downloader.downloader
+import app.revanced.manager.plugin.downloader.*
+import app.revanced.manager.plugin.downloader.play.store.data.Credentials
 import app.revanced.manager.plugin.downloader.play.store.data.Http
-import app.revanced.manager.plugin.downloader.play.store.data.PropertiesProvider
 import app.revanced.manager.plugin.downloader.play.store.service.CredentialProviderService
 import app.revanced.manager.plugin.downloader.play.store.ui.AuthActivity
 import com.aurora.gplayapi.data.models.File as GPlayFile
@@ -20,47 +13,18 @@ import com.aurora.gplayapi.helpers.PurchaseHelper
 import com.reandroid.apk.APKLogger
 import com.reandroid.apk.ApkBundle
 import com.reandroid.app.AndroidManifest
-import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.url
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.parcelize.Parcelize
 import java.io.Closeable
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.util.Properties
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.outputStream
-
-private class ServiceConnImpl : ServiceConnection {
-    private val deferred = CompletableDeferred<IBinder>()
-
-    override fun onServiceConnected(name: ComponentName?, service: IBinder) {
-        deferred.complete(service)
-    }
-
-    suspend fun awaitBind() = deferred.await()
-
-    override fun onServiceDisconnected(name: ComponentName?) {}
-}
-
-private suspend inline fun <R> withService(
-    context: Context,
-    intent: Intent,
-    block: (IBinder) -> R
-): R {
-    val conn = ServiceConnImpl()
-    context.bindService(intent, conn, Context.BIND_AUTO_CREATE)
-    return try {
-        block(withTimeout(10000L) { conn.awaitBind() })
-    } finally {
-        context.unbindService(conn)
-    }
-}
 
 private val allowedFileTypes = arrayOf(GPlayFile.FileType.BASE, GPlayFile.FileType.SPLIT)
 const val LOG_TAG = "PlayStorePlugin"
@@ -83,29 +47,20 @@ private object ArscLogger : APKLogger {
 
 @Parcelize
 class GPlayApp(
-    override val packageName: String,
-    override val version: String,
     val files: List<GPlayFile>
-) : App(packageName, version)
+) : Parcelable
 
 @Suppress("Unused")
 @OptIn(ExperimentalPathApi::class)
-fun playStoreDownloader(context: DownloaderContext) = downloader<GPlayApp> {
-    val deviceProps = PropertiesProvider.createDeviceProperties(context.androidContext)
-
+val playStoreDownloader = Downloader<GPlayApp> {
     get { packageName, version ->
-        val serviceIntent = Intent(context.androidContext, CredentialProviderService::class.java)
-        val credentials = withService(context.androidContext, serviceIntent) { binder ->
+        val (credentials, deviceProps) = useService<CredentialProviderService, Pair<Credentials, Properties>> { binder ->
             val credentialProvider = ICredentialProvider.Stub.asInterface(binder)
-            credentialProvider.retrieveCredentials()?.let { return@withService it }
+            val props = credentialProvider.properties.value
+            credentialProvider.retrieveCredentials()?.let { return@useService it to props }
 
             try {
-                requestUserInteraction().launch(
-                    Intent(
-                        context.androidContext,
-                        AuthActivity::class.java
-                    )
-                )
+                requestStartActivity<AuthActivity>()
             } catch (e: UserInteractionException.Activity.NotCompleted) {
                 if (e.resultCode == AuthActivity.RESULT_FAILED) throw Exception(
                     "Login failed: ${
@@ -117,7 +72,7 @@ fun playStoreDownloader(context: DownloaderContext) = downloader<GPlayApp> {
                 throw e
             }
 
-            credentialProvider.retrieveCredentials() ?: throw Exception("Could not get credentials")
+            credentialProvider.retrieveCredentials()?.let { it to props } ?: throw Exception("Could not get credentials")
         }
         val authData = credentials.toAuthData(deviceProps)
 
@@ -130,8 +85,6 @@ fun playStoreDownloader(context: DownloaderContext) = downloader<GPlayApp> {
         if (!app.isFree) return@get null
 
         GPlayApp(
-            app.packageName,
-            app.versionName,
             app.fileList.filterNot { it.url.isBlank() }.ifEmpty {
                 PurchaseHelper(authData).using(Http).purchase(
                     app.packageName,
@@ -139,15 +92,12 @@ fun playStoreDownloader(context: DownloaderContext) = downloader<GPlayApp> {
                     app.offerType
                 )
             }
-        )
+        ) to app.versionName
     }
 
-    download { app ->
+    download { app, outputStream ->
         val apkDir = Files.createTempDirectory("play_dl")
         try {
-            val totalSize = app.files.sumOf { it.size }
-            var downloadedFilesSize = 0L
-
             if (app.files.isEmpty()) error("No valid files to download")
             app.files.forEach { file ->
                 if (file.type !in allowedFileTypes) error("${file.name} could not be downloaded because it has an unsupported type: ${file.type.name}")
@@ -155,21 +105,13 @@ fun playStoreDownloader(context: DownloaderContext) = downloader<GPlayApp> {
                     .use { stream ->
                         Http.download(stream) {
                             url(file.url)
-                            onDownload { bytesSentTotal, _ ->
-                                reportProgress(downloadedFilesSize + bytesSentTotal, totalSize)
-                            }
                         }
                     }
-                downloadedFilesSize += file.size
             }
 
             val apkFiles = apkDir.listDirectoryEntries()
             if (apkFiles.size == 1) {
-                Files.move(
-                    apkFiles.first(),
-                    targetFile.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING
-                )
+                Files.copy(apkFiles.first(), outputStream)
             } else {
                 val closeables = mutableSetOf<Closeable>()
                 try {
@@ -209,7 +151,7 @@ fun playStoreDownloader(context: DownloaderContext) = downloader<GPlayApp> {
                         refresh()
                     }
 
-                    merged.writeApk(targetFile)
+                    merged.writeApk(outputStream)
                 } finally {
                     closeables.forEach(Closeable::close)
                 }
