@@ -5,7 +5,7 @@
       media="(prefers-color-scheme: dark)"
       srcset="assets/revanced-headline/revanced-headline-vertical-dark.svg"
     >
-    <img
+    <img 
       width="256px"
       src="assets/revanced-headline/revanced-headline-vertical-light.svg"
     >
@@ -58,55 +58,40 @@
    Continuing the legacy of Vanced
 </p>
 
-# 👋🔌 ReVanced Manager Play Store downloader
+# 👋 Contribution guidelines
 
-![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/ReVanced/revanced-manager-play-store-downloader/release.yml)
-![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)
+This document describes how to contribute to ReVanced Manager PlayStore downloader.
 
-A Google Play Store downloader for ReVanced Manager.
+## 📖 Resources to help you get started
 
-## 🧑‍💻 Usage
+* [Our backlog](https://github.com/orgs/ReVanced/projects/12) is where we keep track of what we're working on
+* [Issues](https://github.com/ReVanced/revanced-manager-downloader-template/issues) are where we keep track of bugs and feature requests
 
-- Plugins are managed as Android apps. Download and install the APK file from the releases page.
-- After installing, restart ReVanced Manager and enable the plugin in the settings.
-- The plugin will now be usable.
+## 🙏 Submitting a feature request
 
-When you get prompted, log in to Google with your account. After that, you will be able to download apps from the Play Store.
+Features can be requested by opening an issue using the
+[Feature request issue template](https://github.com/ReVanced/revanced-manager-downloader-template/issues/new?assignees=&labels=Feature+request&projects=&template=feature_request.yml&title=feat%3A+).
 
-> [!WARNING]
-> Due to technical limitations, it is only possible to download the latest version of the app. If the ReVanced suggested version differs from the latest, the installation will fail.
+> **Note**
+> Requests can be accepted or rejected at the discretion of maintainers of ReVanced Manager PlayStore downloader.
+> Good motivation has to be provided for a request to be accepted.
 
-## 📚 Everything else
+## 🐞 Submitting a bug report
 
-### 📙 Contributing
+If you encounter a bug while using ReVanced Manager PlayStore downloader, open an issue using the
+[Bug report issue template](https://github.com/ReVanced/revanced-manager-downloader-template/issues/new?assignees=&labels=Bug+report&projects=&template=bug_report.yml&title=bug%3A+).
 
-Thank you for considering contributing to ReVanced Manager Play Store downloader.
-You can find the contribution guidelines [here](CONTRIBUTING.md).
+## 📝 How to contribute
 
-### 🛠️ Building
+1. Before contributing, it is recommended to open an issue to discuss your change
+with the maintainers of ReVanced Manager PlayStore downloader. This will help you determine whether your change is acceptable
+and whether it is worth your time to implement it
+2. Development happens on the `dev` branch. Fork the repository and create your branch from `dev`
+3. Commit your changes
+4. Submit a pull request to the `dev` branch of the repository and reference issues
+that your pull request closes in the description of your pull request
+5. Our team will review your pull request and provide feedback. Once your pull request is approved,
+it will be merged into the `dev` branch and will be included in the next release of ReVanced Manager PlayStore downloader
 
-To build ReVanced Manager downloader template, a Java Development Kit (JDK) and Git must be installed.
-Follow the steps below to build ReVanced Manager downloader template:
-
-1. Run `git clone git@github.com:ReVanced/revanced-manager-play-store-downloader.git` to clone the repository
-2. Run `gradlew assembleRelease` to build the project
-
-> [!NOTE]
-> If the build fails due to authentication, you may need to authenticate to GitHub Packages.
-> Create a PAT with the scope `read:packages` [here](https://github.com/settings/tokens/new?scopes=read:packages&description=ReVanced) and add your token to ~/.gradle/gradle.properties.
->
-> Example `gradle.properties` file:
->
-> ```properties
-> gpr.user = user
-> gpr.key = key
-> ```
-
-## 📜 Licence
-
-This project is licensed under the GPLv3 licence.
-Please see the [license file](LICENSE) for more information.
-[tl;dr](https://www.tldrlegal.com/license/gnu-general-public-license-v3-gpl-3) you may copy, distribute
-and modify the plugin as long as you track changes/dates in source files.
-Any modifications must also be made available under the GPL,
-along with build & install instructions.
+❤️ Thank you for considering contributing to ReVanced Manager PlayStore downloader,  
+ReVanced
