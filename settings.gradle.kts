@@ -1,4 +1,4 @@
-rootProject.name = "ReVanced Manager - Play Store downloader"
+rootProject.name = "revanced-manager-play-store-downloader"
 
 pluginManagement.repositories {
     gradlePluginPortal()
