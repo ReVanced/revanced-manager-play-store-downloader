@@ -1,24 +1,21 @@
-pluginManagement {
-    repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
+rootProject.name = "revanced-manager-play-store-downloader"
+
+pluginManagement.repositories {
+    gradlePluginPortal()
+    google()
+}
+
+dependencyResolutionManagement.repositories {
+    mavenCentral()
+    google()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/revanced/registry")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
         }
-        mavenCentral()
-        gradlePluginPortal()
     }
 }
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-    }
-}
-rootProject.name = "ReVanced Manager - Play Store downloader"
-include(":app")
+
  
